@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+</head>
+<meta charset="utf-8" />
+<title>WebSocket Test</title>
+<script language="javascript" type="text/javascript">
+
+//var wsUri = "ws://localhost:8080/test";
+var wsUri = "ws://localhost:8765/client";
+//wsUri = "wss://echo.websocket.org"
+var output;
+var websocket;
+
+function init()
+{
+  console.log("[] init")
+  
+  output = document.getElementById("output");
+  testWebSocket();
+}
+
+function testWebSocket()
+{
+  
+  websocket = new WebSocket(wsUri);
+  websocket.onopen = function(evt) { onOpen(evt) };
+  websocket.onclose = function(evt) { onClose(evt) };
+  websocket.onmessage = function(evt) { onMessage(evt) };
+  websocket.onerror = function(evt) { onError(evt) };  
+}
+
+function onOpen(evt)
+{
+  writeToScreen("CONNECTED");
+  //doSend("WebSocket rocks");
+  console.log("[] onOpen CONNECTED")
+}
+
+function onClose(evt)
+{
+  writeToScreen("DISCONNECTED");
+  console.log("[] onClose DISCONNECTED")
+}
+
+function onMessage(evt)
+{
+  writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
+  console.log("[] onMessage data:" + evt.data)
+  //websocket.close();
+}
+
+function onError(evt)
+{
+  writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+}
+
+function doSend(message)
+{
+  writeToScreen("SENT: " + message);
+  data = {
+            "cmd":"list",
+            "stocks":[
+              "TSLA"
+            ],
+            "message":message,
+            "id": 1
+          }
+  websocket.send(JSON.stringify(data));
+}
+
+function writeToScreen(message)
+{
+  var pre = document.createElement("p");
+  pre.style.wordWrap = "break-word";
+  pre.innerHTML = message;
+  output.appendChild(pre);
+}
+
+</script>
+
+<head>
+
+<body onload="init()">
+
+<h2>WebSocket Test</h2>
+
+<button id="button" onclick=doSend("dddd")>SEND</button>
+
+<div id="output"></div>
+
+</body>
+</html>
