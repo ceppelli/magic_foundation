@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='magic_foundation',
-    version='0.1.1',
+    version='0.1.2',
     author='Luca Ceppelli',
     author_email='luca@ceppelli.com',
     description='Minimalistic library that simplifies the adoption of async/await (asyncio) programming style in a multithreaded application.',
