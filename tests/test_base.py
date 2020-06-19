@@ -60,7 +60,7 @@ class TestService(Service):
 
 class TestBase(TestCase):
 
-    def _test_service_lifecycle_single_runloop(self):
+    def test_service_lifecycle_single_runloop(self):
       main = Main()
 
       service_1 = TestService(name="Service_1")
