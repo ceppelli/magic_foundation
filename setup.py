@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.1.0",
     author="Luca Ceppelli",
     author_email="luca@ceppelli.com",
-    description="Minimalistic library that simplifies the adoption of async/await (asyncio) programming style in a multithreaded application",
+    description="Minimalistic library that simplifies the adoption of async/await (asyncio) programming style in a multithreaded application.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ceppelli/magic_foundation",
@@ -29,5 +29,11 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
+    project_urls={
+        'CI: travis': 'https://travis-ci.com/github/ceppelli/magic_foundation',
+        'Coverage: codecov': 'https://codecov.io/github/ceppelli/magic_foundation',
+        'GitHub: issues': 'https://github.com/ceppelli/magic_foundation/issues',
+        'GitHub: repo': 'https://github.com/ceppelli/magic_foundation',
+    },
     python_requires='>=3.7',
 )

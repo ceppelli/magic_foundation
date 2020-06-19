@@ -1,6 +1,7 @@
 ## magic_foundation
 
 [![Build Status](https://travis-ci.com/ceppelli/magic_foundation.svg?branch=master)](https://travis-ci.com/ceppelli/magic_foundation)
+[![codecov](https://codecov.io/gh/ceppelli/magic_foundation/branch/master/graph/badge.svg)](https://codecov.io/gh/ceppelli/magic_foundation)
 
 Minimalistic library that simplifies the adoption of **async/await** (asyncio) programming style in a multithreaded application.
 

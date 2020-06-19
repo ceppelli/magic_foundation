@@ -4,13 +4,20 @@ python:
   - "3.7"
   - "3.8"
 
+before_install:
+  - pip install coverage
+  - pip install codecov
+
 install:
   # Ensure virtualenv is up to date to avoid DeprecationWarning in bundled site.py.
   - pip install --upgrade virtualenv
   - pip install -r requirements.txt
   - pip install .
 
-script: python -m unittest discover -v -s tests -p test_*.py
+script: coverage run -m unittest discover -v -s tests -p test_*.py
+
+after_success:
+  - codecov
 
 notifications:
   email: false
