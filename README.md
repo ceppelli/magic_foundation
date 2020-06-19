@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.com/ceppelli/magic_foundation.svg?branch=master)](https://travis-ci.com/ceppelli/magic_foundation)
 [![codecov](https://codecov.io/gh/ceppelli/magic_foundation/branch/master/graph/badge.svg)](https://codecov.io/gh/ceppelli/magic_foundation)
+[![pypi](https://badge.fury.io/py/magic-foundation.svg)](https://pypi.org/project/magic_foundation/)
+
 
 Minimalistic library that simplifies the adoption of **async/await** (asyncio) programming style in a multithreaded application.
 
@@ -9,7 +11,7 @@ Minimalistic library that simplifies the adoption of **async/await** (asyncio) p
 Define 2 services and run in the same runloop (single thread)
 
 ```python
-import loggin
+import logging
 
 from magic_foundation import Service, ServiceStatus, ServiceContext, Main
 

@@ -5,7 +5,12 @@
 *.swp
 .DS_Store
 
+# venv
 .venv
+
+# setuptools
+dist/
+src/*.egg-info/
 
 # IntelliJ related
 *.iml
@@ -18,5 +23,7 @@
 
 # Symbolication related
 app.*.symbols
+
+
 
 
