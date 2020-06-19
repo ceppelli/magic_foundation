@@ -23,7 +23,7 @@ class Main:
       self.service_pools:dict = {}
 
     def start(self):
-        self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.new_event_loop()
         self.threads = [Container(k, self.service_pools[k]) for k in self.service_pools]
         [t.start() for t in self.threads]
 
@@ -101,8 +101,6 @@ class TestBase(TestCase):
             service_2,
         ]
       }
-
-      print(type(main.service_pools))
 
       self.assertEqual(service_1.status, ServiceStatus.uninitialized)
       self.assertEqual(service_2.status, ServiceStatus.uninitialized)
