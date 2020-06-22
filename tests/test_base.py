@@ -19,7 +19,7 @@ logging.getLogger("magic_foundation").setLevel(logging.WARNING)
 class Main:
 
     def __init__(self):
-      self.__module__loop = None
+      self.loop = None
       self.service_pools:dict = {}
 
     def start(self):

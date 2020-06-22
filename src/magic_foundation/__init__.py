@@ -10,7 +10,7 @@ import threading
 from enum import Enum
 
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 __all__ = ('Main', 'Service', 'ServiceStatus', 'ServiceContext')
 
 log = logging.getLogger(__name__)
@@ -70,16 +70,22 @@ class ServiceStatus(Enum):
 
 class ServiceContext():
 
-  def __init__(self, thread_id:int, loop:asyncio.AbstractEventLoop, container):
-    self.thread_id = thread_id
-    self.loop = loop
-    self.container = container
+    def __init__(self, thread_id:int, loop:asyncio.AbstractEventLoop, container):
+        self.thread_id = thread_id
+        self.loop = loop
+        self.container = container
 
-  async def publish(self, queue_name:str, data:map):    
-    await self.container.publish(queue_name=queue_name, data=data)
-     
-  async def subscribe(self, queue_name:str, handler):
-    await self.container.subscribe(queue_name=queue_name, handler=handler)
+    async def publish(self, queue_name:str, data:map):    
+        await self.container.publish(queue_name=queue_name, data=data)
+        
+    async def subscribe(self, queue_name:str, handler):
+        await self.container.subscribe(queue_name=queue_name, handler=handler)
+
+    async def unsubscribe(self, queue_name:str, handler):
+        await self.container.unsubscribe(queue_name=queue_name, handler=handler)
+
+    async def dump_queue_tree(self):
+        await self.container.dump_queue_tree()
 
 
 class Service(object):
@@ -176,7 +182,6 @@ class Container(threading.Thread):
                     if queue_name in self.queues:
                       if self.thread_id in self.queues[queue_name]:
                         for handler in self.queues[queue_name][self.thread_id].handlers:
-                          #self.loop.call_soon(handler, event.data)
                           asyncio.ensure_future(handler(data=event.data), loop=self.loop)
 
                     log.debug(f"[{self.name}][{self.k}] inbound_handler 3 [thread id:{self.thread_id}] event:{event}")
@@ -248,7 +253,6 @@ class Container(threading.Thread):
             for thread_id in self.queues[queue_name]:
                 await self.queues[queue_name][thread_id].queue.put(Container.Event(queue_name, data))
                  
-      
     async def subscribe(self, queue_name: str, handler) -> map:
         log.debug(f"[{self.name}] subscribe name:{queue_name}")
         if queue_name not in self.queues:
@@ -258,6 +262,36 @@ class Container(threading.Thread):
             self.queues[queue_name][self.thread_id] = Container.QRef(queue_ref=self.q_inbound)
 
         self.queues[queue_name][self.thread_id].handlers.append(handler)
+
+    async def unsubscribe(self, queue_name: str, handler) -> map:
+        log.debug(f"[{self.name}] unsubscribe name:{queue_name}")
+
+        if queue_name in self.queues:
+            
+            qref_to_remove = []
+
+            for thread_id in self.queues[queue_name]:
+                q_ref = self.queues[queue_name][thread_id]
+                
+                if handler in q_ref.handlers: 
+                    q_ref.handlers.remove(handler)
+
+                if len(q_ref.handlers) == 0:
+                    qref_to_remove.append(thread_id)
+
+            for thread_id in qref_to_remove:
+                del self.queues[queue_name][thread_id]
+
+    async def dump_queue_tree(self):
+        log.info(f"|========================================================")
+        for queue_name in self.queues:
+            log.info(f"|-- {queue_name}")
+            for thread_id in self.queues[queue_name]:
+                log.info(f"|  |-- {thread_id}")
+                q_ref = self.queues[queue_name][thread_id]
+                for handler in q_ref.handlers:
+                    log.info(f"|     |-- {handler}")
+        log.info(f"|========================================================")
 
 
 class Main:
