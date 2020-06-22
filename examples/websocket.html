@@ -5,9 +5,7 @@
 <title>WebSocket Test</title>
 <script language="javascript" type="text/javascript">
 
-//var wsUri = "ws://localhost:8080/test";
 var wsUri = "ws://localhost:8765/client";
-//wsUri = "wss://echo.websocket.org"
 var output;
 var websocket;
 
@@ -16,37 +14,33 @@ function init()
   console.log("[] init")
   
   output = document.getElementById("output");
-  testWebSocket();
+
+
+  document.getElementById("conncect_button").disabled = false;  
 }
 
-function testWebSocket()
-{
-  
-  websocket = new WebSocket(wsUri);
-  websocket.onopen = function(evt) { onOpen(evt) };
-  websocket.onclose = function(evt) { onClose(evt) };
-  websocket.onmessage = function(evt) { onMessage(evt) };
-  websocket.onerror = function(evt) { onError(evt) };  
-}
 
 function onOpen(evt)
 {
   writeToScreen("CONNECTED");
-  //doSend("WebSocket rocks");
-  console.log("[] onOpen CONNECTED")
+
+  document.getElementById("conncect_button").disabled = true;
+  document.getElementById("send_button").disabled = false;
+  document.getElementById("close_button").disabled = false; 
 }
 
 function onClose(evt)
 {
   writeToScreen("DISCONNECTED");
-  console.log("[] onClose DISCONNECTED")
+
+  document.getElementById("conncect_button").disabled = false;
+  document.getElementById("send_button").disabled = true;
+  document.getElementById("close_button").disabled = true;  
 }
 
 function onMessage(evt)
 {
-  writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
-  console.log("[] onMessage data:" + evt.data)
-  //websocket.close();
+  writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');  
 }
 
 function onError(evt)
@@ -54,18 +48,30 @@ function onError(evt)
   writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
 }
 
-function doSend(message)
+function doConnect()
 {
-  writeToScreen("SENT: " + message);
+  websocket = new WebSocket(wsUri);
+  websocket.onopen = function(evt) { onOpen(evt) };
+  websocket.onclose = function(evt) { onClose(evt) };
+  websocket.onmessage = function(evt) { onMessage(evt) };
+  websocket.onerror = function(evt) { onError(evt) }; 
+}
+
+function doSend()
+{
   data = {
-            "cmd":"list",
-            "stocks":[
-              "TSLA"
-            ],
-            "message":message,
-            "id": 1
-          }
+          "cmd":"ping",
+          "timestamp": Date.now()
+         }
+
+  writeToScreen("SENT: " + JSON.stringify(data));
+  
   websocket.send(JSON.stringify(data));
+}
+
+function doClose()
+{
+  websocket.close();
 }
 
 function writeToScreen(message)
@@ -84,7 +90,9 @@ function writeToScreen(message)
 
 <h2>WebSocket Test</h2>
 
-<button id="button" onclick=doSend("dddd")>SEND</button>
+<button id="conncect_button" disabled onclick=doConnect()>CONNECT</button>
+<button id="send_button" disabled onclick=doSend()>SEND</button>
+<button id="close_button" disabled onclick=doClose()>CLOSE</button>
 
 <div id="output"></div>
 

@@ -104,3 +104,60 @@ The communication between Services mimics the **publish/subscribe paradigm**
 It is possible to subscribe to the same queue from different services and each service will receive the message
 
 
+## WebSocket Service
+
+As an additionan component the library provides a built-in websocket service.
+
+```python
+
+from magic_foundation import Container, Service, ServiceStatus, ServiceContext, Main
+from magic_foundation.websocket_service import WebSocketService
+
+...
+
+class TestService(Service):
+
+  ...  
+    
+  async def run(self, ctx:ServiceContext):
+    log.info(f"[{self.name}] run")
+
+    async def handler(data):
+      log.info(f"[{self.name}] handler inbound data:{data}")
+      req = json.loads(data)
+      res = json.dumps({"status": "OK", "timestamp": req["timestamp"]})
+      await ctx.publish(queue_name="ws://outbound/client", data=res)
+
+    await ctx.subscribe(queue_name="ws://inbound/client", handler=handler)
+
+    ...
+
+  async def terminate(self, ctx:ServiceContext):
+    log.info(f"[{self.name}] terminate")
+...
+
+
+if __name__ == "__main__":
+    main = Main.instance()
+
+    main.service_pools = {
+      "main" : [
+        WebSocketService(host="localhost", port=8765),
+        TestService(name="Consumer"), 
+      ]
+    }
+
+    main.run()
+```
+
+The prefixes **ws://inbound/** and **ws://outbound/** refer to the WS endpoint (WebSocketService) and **must be considered reserved**.
+
+The complete example is contained in the examples folder. 
+
+To trying it run in a shell the command: **python examples/websocket.py** and in a browser open the file **websocket.html**. 
+
+### Limitations
+
+Right now only the requested **path** is use as discriminant, so messages from different clients with the same path are routed to the same handler and vice versa one outbound message is sent to all clients connected to the same **path**.
+
+
