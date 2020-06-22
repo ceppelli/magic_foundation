@@ -154,10 +154,10 @@ The prefixes **ws://inbound/** and **ws://outbound/** refer to the WS endpoint (
 
 The complete example is contained in the examples folder. 
 
-To trying it run in a shell the command: **python examples/websocket.py** and in a browser open the file **websocket.html** 
+To trying it run in a shell the command: **python examples/websocket.py** and in a browser open the file **websocket.html**. 
 
 ### Limitations
 
-Right now only the requested **path** is use as discriminant, so messages from different clients with the same path are routed to the same handler and vice versa one outbound message is send to all clients connected to the same **path**
+Right now only the requested **path** is use as discriminant, so messages from different clients with the same path are routed to the same handler and vice versa one outbound message is sent to all clients connected to the same **path**.
 
 
