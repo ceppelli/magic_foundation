@@ -46,6 +46,7 @@ class TestService(Service):
 
   def __init__(self, name:str):
       self.name = name
+      self.q_inbound = asyncio.Queue()
 
   async def initialize(self, ctx:ServiceContext):
     log.info(f"[{self.name}] initialize")
@@ -54,6 +55,36 @@ class TestService(Service):
   async def run(self, ctx:ServiceContext):
     log.info(f"[{self.name}] run")
 
+    async def handler(data:map):
+      self.q_inbound.put_nowait(data)
+        
+    self.handler = handler
+
+    await ctx.subscribe(queue_name="q://test", handler=self.handler)
+
+  async def terminate(self, ctx:ServiceContext):
+    log.info(f"[{self.name}] terminate")
+
+    await ctx.unsubscribe(queue_name="q://test", handler=self.handler)
+
+
+class ProducerService(Service):
+
+  def __init__(self, name:str, num_messages=0):
+      self.name = name
+      self.num_messages = num_messages
+
+  async def initialize(self, ctx:ServiceContext):
+    log.info(f"[{self.name}] initialize")
+    await asyncio.sleep(0.5)
+    
+  async def run(self, ctx:ServiceContext):
+    log.info(f"[{self.name}] run")
+
+    for i in range(self.num_messages):
+      await ctx.publish(queue_name="q://test", data={"index": i})
+      await asyncio.sleep(0)
+
   async def terminate(self, ctx:ServiceContext):
     log.info(f"[{self.name}] terminate")
 
@@ -61,56 +92,105 @@ class TestService(Service):
 class TestBase(TestCase):
 
     def test_service_lifecycle_single_runloop(self):
-      main = Main()
+        main = Main()
 
-      service_1 = TestService(name="Service_1")
-      service_2 = TestService(name="Service_2")
-      
-      main.service_pools = {
-        'main': [
-            service_1,
-            service_2,
-          ]
-      }
+        service_1 = TestService(name="Service_1")
+        service_2 = TestService(name="Service_2")
+        
+        main.service_pools = {
+          'main': [
+              service_1,
+              service_2,
+            ]
+        }
 
-      self.assertEqual(service_1.status, ServiceStatus.uninitialized)
-      self.assertEqual(service_2.status, ServiceStatus.uninitialized)
- 
-      main.start()
+        self.assertEqual(service_1.status, ServiceStatus.uninitialized)
+        self.assertEqual(service_2.status, ServiceStatus.uninitialized)
+  
+        main.start()
 
-      self.assertEqual(service_1.status, ServiceStatus.running)
-      self.assertEqual(service_2.status, ServiceStatus.running)
+        self.assertEqual(service_1.status, ServiceStatus.running)
+        self.assertEqual(service_2.status, ServiceStatus.running)
 
-      main.stop()
+        main.stop()
 
-      self.assertEqual(service_1.status, ServiceStatus.terminated)
-      self.assertEqual(service_2.status, ServiceStatus.terminated)
-
+        self.assertEqual(service_1.status, ServiceStatus.terminated)
+        self.assertEqual(service_2.status, ServiceStatus.terminated)
 
     def test_service_lifecycle_multi_runloop(self):
-      main = Main()
+        main = Main()
 
-      service_1 = TestService(name="Service_1")
-      service_2 = TestService(name="Service_2")
-      
-      main.service_pools = {
-        'main': [
-            service_1,            
-        ],
-        'second': [
-            service_2,
-        ]
-      }
+        service_1 = TestService(name="Service_1")
+        service_2 = TestService(name="Service_2")
+        
+        main.service_pools = {
+          'main': [
+              service_1,            
+          ],
+          'second': [
+              service_2,
+          ]
+        }
 
-      self.assertEqual(service_1.status, ServiceStatus.uninitialized)
-      self.assertEqual(service_2.status, ServiceStatus.uninitialized)
-      
-      main.start()
+        self.assertEqual(service_1.status, ServiceStatus.uninitialized)
+        self.assertEqual(service_2.status, ServiceStatus.uninitialized)
+        
+        main.start()
 
-      self.assertEqual(service_1.status, ServiceStatus.running)
-      self.assertEqual(service_2.status, ServiceStatus.running)
+        self.assertEqual(service_1.status, ServiceStatus.running)
+        self.assertEqual(service_2.status, ServiceStatus.running)
 
-      main.stop()
+        main.stop()
 
-      self.assertEqual(service_1.status, ServiceStatus.terminated)
-      self.assertEqual(service_2.status, ServiceStatus.terminated)
+        self.assertEqual(service_1.status, ServiceStatus.terminated)
+        self.assertEqual(service_2.status, ServiceStatus.terminated)
+
+    def test_message_single_runloop(self):
+        main = Main()
+
+        consumer = TestService(name="Consumer")
+        producer = ProducerService(name="Producer", num_messages=3)
+
+        main.service_pools = {
+          'main': [
+              consumer,
+              producer
+          ]
+        }
+
+        self.assertEqual(consumer.q_inbound.qsize(), 0)
+
+        main.start()
+
+        self.assertEqual(consumer.q_inbound.qsize(), 3)
+
+        main.stop()
+
+    def test_message_multi_runloop(self):
+        main = Main()
+
+        consumer = TestService(name="Consumer")
+        producer = ProducerService(name="Producer", num_messages=3)
+
+        main.service_pools = {
+          'main': [
+              consumer,              
+          ],
+          'second': [
+              producer,
+          ]
+        }
+
+        self.assertEqual(consumer.q_inbound.qsize(), 0)
+
+        main.start()
+
+        self.assertEqual(consumer.q_inbound.qsize(), 3)
+
+        main.stop()
+
+
+
+        
+
+

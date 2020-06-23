@@ -10,7 +10,7 @@ import threading
 from enum import Enum
 
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 __all__ = ('Main', 'Service', 'ServiceStatus', 'ServiceContext')
 
 log = logging.getLogger(__name__)
