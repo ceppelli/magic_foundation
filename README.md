@@ -161,3 +161,61 @@ To trying it run in a shell the command: **python examples/websocket.py** and in
 Right now only the requested **path** is use as discriminant, so messages from different clients with the same path are routed to the same handler and vice versa one outbound message is sent to all clients connected to the same **path**.
 
 
+## Simple Logging Service
+
+The included logging service is a simpple way to dump json maggase to a local file.
+
+```python
+
+from magic_foundation import Container, Service, ServiceStatus, ServiceContext, Main
+from magic_foundation.logging_service import LoggingService
+
+...
+
+file_path = "logging_out.log"
+
+class TestService(Service):
+
+  ...  
+    
+  async def run(self, ctx:ServiceContext):
+    log.info(f"[{self.name}] run")
+
+    ...
+
+  async def terminate(self, ctx:ServiceContext):
+    log.info(f"[{self.name}] terminate")
+
+    index = 0;
+
+    while self.status == ServiceStatus.running:
+      index += 1
+      data = {"cmd": "log", "index": index}
+
+      await ctx.publish(queue_name=f"log://{file_path}", data=data)
+
+      await asyncio.sleep(1.0)
+...
+
+
+if __name__ == "__main__":
+    main = Main.instance()
+
+    main.service_pools = {
+      "backgound" : [
+        LoggingService(file_path=file_path, flush_interval_sec=4.0)
+      ],
+      "main" : [
+        TestService(name="Producer")
+      ]
+    }
+
+    main.run()
+```
+
+The prefixes **log://** refers to the simple logging service (LoggingService) and **must be considered reserved**.
+
+The complete example is contained in the examples folder. 
+
+To trying it run in a shell the command: **python examples/dump_to_file.py**. In the root of the project a file called **logging_out.log** will be created and every 4 seconds the logging service will flush the collected messages. 
+
