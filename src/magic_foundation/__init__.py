@@ -10,7 +10,7 @@ import threading
 from enum import Enum
 
 
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 __all__ = ('Main', 'Service', 'ServiceStatus', 'ServiceContext')
 
 log = logging.getLogger(__name__)
@@ -43,7 +43,10 @@ class Queue:
             """
             same thread
             """
-            self._loop.call_soon(self._queue.put_nowait, item)
+            if self._loop.is_running():
+                self._loop.call_soon(self._queue.put_nowait, item)
+            else:
+                log.debug(f"[Queue][{self.label}] put [thread id:{thread_id}] the runloop is closed.")
         else:
             """
             differents threads
@@ -54,7 +57,11 @@ class Queue:
               self._queue.put_nowait(item)
               log.debug(f"[Queue][{self.label}] put 2 [thread id:{threading.current_thread().ident}]")
 
-            asyncio.run_coroutine_threadsafe(coro(), self._loop).result()
+            if self._loop.is_running():
+                future:concurrent.futures.Future = asyncio.run_coroutine_threadsafe(coro(), self._loop)
+                future.result()                
+            else:
+                log.queue(f"[Queue][{self.label}] put 4 [thread id:{threading.current_thread().ident}] the runloop is closed.")
 
     async def get(self):
         return await self._queue.get()
@@ -75,17 +82,21 @@ class ServiceContext():
         self.loop = loop
         self.container = container
 
-    async def publish(self, queue_name:str, data:map):    
-        await self.container.publish(queue_name=queue_name, data=data)
+    async def publish(self, queue_name:str, data:map):
+        if self.loop.is_running():    
+            await self.container.publish(queue_name=queue_name, data=data)
         
     async def subscribe(self, queue_name:str, handler):
-        await self.container.subscribe(queue_name=queue_name, handler=handler)
+        if self.loop.is_running():
+            await self.container.subscribe(queue_name=queue_name, handler=handler)
 
     async def unsubscribe(self, queue_name:str, handler):
-        await self.container.unsubscribe(queue_name=queue_name, handler=handler)
+        if self.loop.is_running():
+            await self.container.unsubscribe(queue_name=queue_name, handler=handler)
 
     async def dump_queue_tree(self):
-        await self.container.dump_queue_tree()
+        if self.loop.is_running():
+            await self.container.dump_queue_tree()
 
 
 class Service(object):

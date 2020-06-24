@@ -41,12 +41,11 @@ class TestService(Service):
     log.info(f"[{self.name}] terminate")
 
 
-
 if __name__ == "__main__":
     main = Main.instance()
 
     main.service_pools = {
-      "backgound" : [
+      "background" : [
         LoggingService(file_path=file_path, flush_interval_sec=4.0)
       ],
       "main" : [
