@@ -10,7 +10,7 @@ import threading
 from enum import Enum
 
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 __all__ = ('Main', 'Service', 'ServiceStatus', 'ServiceContext')
 
 log = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class Queue:
                 future:concurrent.futures.Future = asyncio.run_coroutine_threadsafe(coro(), self._loop)
                 future.result()                
             else:
-                log.queue(f"[Queue][{self.label}] put 4 [thread id:{threading.current_thread().ident}] the runloop is closed.")
+                log.debug(f"[Queue][{self.label}] put 4 [thread id:{threading.current_thread().ident}] the runloop is closed.")
 
     async def get(self):
         return await self._queue.get()
