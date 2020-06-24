@@ -7,6 +7,7 @@ import sys
 import traceback                     
 import threading
 
+
 from time import sleep
 from magic_foundation import Container, Service, ServiceStatus, ServiceContext
 
@@ -50,7 +51,7 @@ class TestService(Service):
 
   async def initialize(self, ctx:ServiceContext):
     log.info(f"[{self.name}] initialize")
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0)
     
   async def run(self, ctx:ServiceContext):
     log.info(f"[{self.name}] run")
@@ -75,11 +76,12 @@ class ProducerService(Service):
       self.num_messages = num_messages
 
   async def initialize(self, ctx:ServiceContext):
-    log.info(f"[{self.name}] initialize")
-    await asyncio.sleep(0.5)
+    log.info(f"[{self.name}] initialize")    
     
   async def run(self, ctx:ServiceContext):
     log.info(f"[{self.name}] run")
+
+    await asyncio.sleep(0.5)
 
     for i in range(self.num_messages):
       await ctx.publish(queue_name="q://test", data={"index": i})
@@ -92,8 +94,10 @@ class ProducerService(Service):
 class TestBase(TestCase):
 
     def test_service_lifecycle_single_runloop(self):
+        log.info("\n")
+        
         main = Main()
-
+        
         service_1 = TestService(name="Service_1")
         service_2 = TestService(name="Service_2")
         
@@ -118,6 +122,8 @@ class TestBase(TestCase):
         self.assertEqual(service_2.status, ServiceStatus.terminated)
 
     def test_service_lifecycle_multi_runloop(self):
+        log.info("\n")
+        
         main = Main()
 
         service_1 = TestService(name="Service_1")
@@ -146,6 +152,8 @@ class TestBase(TestCase):
         self.assertEqual(service_2.status, ServiceStatus.terminated)
 
     def test_message_single_runloop(self):
+        log.info("\n")
+        
         main = Main()
 
         consumer = TestService(name="Consumer")
@@ -162,11 +170,15 @@ class TestBase(TestCase):
 
         main.start()
 
+        sleep(1.0) 
+
         self.assertEqual(consumer.q_inbound.qsize(), 3)
 
         main.stop()
 
     def test_message_multi_runloop(self):
+        log.info("\n")
+        
         main = Main()
 
         consumer = TestService(name="Consumer")
@@ -185,12 +197,8 @@ class TestBase(TestCase):
 
         main.start()
 
+        sleep(1.0) 
+
         self.assertEqual(consumer.q_inbound.qsize(), 3)
 
         main.stop()
-
-
-
-        
-
-
